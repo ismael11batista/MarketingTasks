@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Atividades de Marketing</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="logo-section">
+      <h1><i class="fas fa-tasks"></i> Marketing Tasks</h1>
+    </div>
+    <div class="search-section">
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Pesquisar tarefas...">
+        <button class="btn-search"><i class="fas fa-search"></i></button>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="dropdown">
+        <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="filterDropdown">
+          <li><a class="dropdown-item filter-option" data-filter="all" href="#">Todas</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="pending" href="#">Pendentes</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="completed" href="#">Concluídas</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="overdue" href="#">Atrasadas</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="today" href="#">Para hoje</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="week" href="#">Esta semana</a></li>
+          <li><a class="dropdown-item filter-option" data-filter="highPriority" href="#">Alta prioridade</a></li>
+        </ul>
+      </div>
+      <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#analyticsModal"><i class="fas fa-chart-bar"></i> Análises</button>
+      <button class="btn btn-outline-light btn-sm" onclick="exportData()"><i class="fas fa-file-export"></i> Exportar</button>
+      <button class="btn btn-outline-light btn-sm" onclick="document.getElementById('importFileInput').click()"><i class="fas fa-file-import"></i> Importar</button>
+      <button class="btn btn-outline-light btn-sm" onclick="clearCompletedTasks()"><i class="fas fa-broom"></i> Limpar Concluídos</button>
+      <input type="file" id="importFileInput" style="display:none" accept="application/json" onchange="importData(event)">
+    </div>
+  </header>
+  
+  <div class="app-container">
+    <nav id="macroSidebar" class="col-md-3">
+      <div class="sidebar-header">
+        <h5><i class="fas fa-layer-group"></i> Macro Tarefas</h5>
+        <div class="toggle-sidebar-btn" id="toggleSidebar">
+          <i class="fas fa-chevron-left"></i>
+        </div>
+      </div>
+      
+      <div class="input-group new-macro">
+        <input type="text" id="newMacroInput" class="form-control" placeholder="Nova Macro Tarefa">
+        <button class="btn" onclick="addMacro()"><i class="fas fa-plus"></i></button>
+      </div>
+      
+      <div class="sidebar-stats">
+        <div class="stat-item">
+          <span>Total</span>
+          <span id="totalMacroCount">0</span>
+        </div>
+        <div class="stat-item">
+          <span>Concluídas</span>
+          <span id="completedMacroRate">0%</span>
+        </div>
+      </div>
+      
+      <ul id="macroList" class="list-unstyled"></ul>
+    </nav>
+    
+    <main class="col-md-9">
+      <div class="main-header">
+        <h4 id="selectedMacroTitle">Selecione uma Macro Tarefa</h4>
+        <div class="task-view-options">
+          <button class="btn btn-sm view-option active" data-view="list"><i class="fas fa-list"></i></button>
+          <button class="btn btn-sm view-option" data-view="board"><i class="fas fa-columns"></i></button>
+        </div>
+      </div>
+      
+      <div class="task-stats">
+        <div class="task-stat">
+          <i class="fas fa-tasks"></i>
+          <div>
+            <span id="totalTaskCount">0</span>
+            <small>Total</small>
+          </div>
+        </div>
+        <div class="task-stat">
+          <i class="fas fa-check-circle"></i>
+          <div>
+            <span id="completedTaskCount">0</span>
+            <small>Concluídas</small>
+          </div>
+        </div>
+        <div class="task-stat">
+          <i class="fas fa-hourglass-half"></i>
+          <div>
+            <span id="pendingTaskCount">0</span>
+            <small>Pendentes</small>
+          </div>
+        </div>
+        <div class="task-stat">
+          <i class="fas fa-exclamation-circle"></i>
+          <div>
+            <span id="overdueTaskCount">0</span>
+            <small>Atrasadas</small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="add-task-container">
+        <div class="input-group">
+          <input type="text" id="newTaskInput" class="form-control" placeholder="Nova Tarefa" disabled>
+          <button class="btn" id="showTaskFormBtn" disabled><i class="fas fa-plus"></i></button>
+        </div>
+      </div>
+      
+      <div id="taskContainer">
+        <div id="listView" class="task-view active">
+          <ul id="taskList" class="list-group"></ul>
+        </div>
+        
+        <div id="boardView" class="task-view">
+          <div class="task-board">
+            <div class="board-column">
+              <div class="column-header">Pendentes</div>
+              <div id="pendingTasks" class="column-tasks"></div>
+            </div>
+            <div class="board-column">
+              <div class="column-header">Em Progresso</div>
+              <div id="inProgressTasks" class="column-tasks"></div>
+            </div>
+            <div class="board-column">
+              <div class="column-header">Concluídas</div>
+              <div id="completedTasks" class="column-tasks"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Task Form Modal -->
+  <div class="modal fade" id="taskFormModal" tabindex="-1" aria-labelledby="taskFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="taskFormModalLabel">Nova Tarefa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <form id="taskForm">
+            <div class="mb-3">
+              <label for="taskTitle" class="form-label">Título</label>
+              <input type="text" class="form-control" id="taskTitle" required>
+            </div>
+            <div class="mb-3">
+              <label for="taskDescription" class="form-label">Descrição</label>
+              <textarea class="form-control" id="taskDescription" rows="3"></textarea>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="taskDueDate" class="form-label">Data de Entrega</label>
+                <input type="text" class="form-control" id="taskDueDate">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="taskPriority" class="form-label">Prioridade</label>
+                <select class="form-select" id="taskPriority">
+                  <option value="low">Baixa</option>
+                  <option value="medium" selected>Média</option>
+                  <option value="high">Alta</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="taskAssignee" class="form-label">Responsável</label>
+              <input type="text" class="form-control" id="taskAssignee" placeholder="Nome do responsável">
+            </div>
+            <div class="mb-3">
+              <label for="taskStatus" class="form-label">Status</label>
+              <select class="form-select" id="taskStatus">
+                <option value="pending" selected>Pendente</option>
+                <option value="in-progress">Em Progresso</option>
+                <option value="completed">Concluída</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="saveTaskBtn">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Confirm Modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmModalLabel">Confirmação</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="confirmModalBody"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="confirmModalBtn" class="btn btn-primary">Confirmar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Analytics Modal -->
+  <div class="modal fade" id="analyticsModal" tabindex="-1" aria-labelledby="analyticsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="analyticsModalLabel">Análise de Tarefas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="analytics-card">
+                <h6>Progresso Geral</h6>
+                <div class="chart-container">
+                  <canvas id="progressChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="analytics-card">
+                <h6>Tarefas por Prioridade</h6>
+                <div class="chart-container">
+                  <canvas id="priorityChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="analytics-card">
+                <h6>Tarefas por Status</h6>
+                <div class="chart-container">
+                  <canvas id="statusChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="analytics-card">
+                <h6>Tendência de Conclusão</h6>
+                <div class="chart-container">
+                  <canvas id="completionTrendChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Bootstrap JS Bundle with Popper -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Flatpickr for Date Picker -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/pt.js"></script>
+  <!-- SortableJS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <!-- Custom JS -->
+  <script src="scripts.js"></script>
+</body>
+</html>

@@ -38,7 +38,7 @@
           <li><a class="dropdown-item filter-option" data-filter="overdue" href="#">Atrasadas</a></li>
           <li><a class="dropdown-item filter-option" data-filter="today" href="#">Para hoje</a></li>
           <li><a class="dropdown-item filter-option" data-filter="week" href="#">Esta semana</a></li>
-          <li><a class="dropdown-item filter-option" data-filter="highPriority" href="#">Alta prioridade</a></li>
+          <!-- Removed Alta prioridade filter -->
         </ul>
       </div>
       <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#analyticsModal"><i class="fas fa-chart-bar"></i> Análises</button>
@@ -53,9 +53,7 @@
     <nav id="macroSidebar" class="col-md-3">
       <div class="sidebar-header">
         <h5><i class="fas fa-layer-group"></i> Macro Tarefas</h5>
-        <div class="toggle-sidebar-btn" id="toggleSidebar">
-          <i class="fas fa-chevron-left"></i>
-        </div>
+        <!-- Removed toggle button -->
       </div>
       
       <div class="input-group new-macro">
@@ -74,7 +72,14 @@
         </div>
       </div>
       
-      <ul id="macroList" class="list-unstyled"></ul>
+      <ul id="macroList" class="list-unstyled">
+        <li class="macro-item all-tasks-item" onclick="selectGlobalView('allTasks')">
+            <div class="macro-info">
+                <div class="macro-name"><i class="fas fa-globe"></i> Todas as Tarefas</div>
+            </div>
+        </li>
+        <!-- Existing macros will be rendered by renderMacros() below this -->
+      </ul>
     </nav>
     
     <main class="col-md-9">
@@ -167,32 +172,7 @@
               <label for="taskDescription" class="form-label">Descrição</label>
               <textarea class="form-control" id="taskDescription" rows="3"></textarea>
             </div>
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label for="taskDueDate" class="form-label">Data de Entrega</label>
-                <input type="text" class="form-control" id="taskDueDate">
-              </div>
-              <div class="col-md-6 mb-3">
-                <label for="taskPriority" class="form-label">Prioridade</label>
-                <select class="form-select" id="taskPriority">
-                  <option value="low">Baixa</option>
-                  <option value="medium" selected>Média</option>
-                  <option value="high">Alta</option>
-                </select>
-              </div>
-            </div>
-            <div class="mb-3">
-              <label for="taskAssignee" class="form-label">Responsável</label>
-              <input type="text" class="form-control" id="taskAssignee" placeholder="Nome do responsável">
-            </div>
-            <div class="mb-3">
-              <label for="taskStatus" class="form-label">Status</label>
-              <select class="form-select" id="taskStatus">
-                <option value="pending" selected>Pendente</option>
-                <option value="in-progress">Em Progresso</option>
-                <option value="completed">Concluída</option>
-              </select>
-            </div>
+            <!-- Priority, Due Date, Assignee, Status fields are removed -->
           </form>
         </div>
         <div class="modal-footer">
@@ -238,6 +218,7 @@
                 </div>
               </div>
             </div>
+            <!-- Removed Priority Chart Column 
             <div class="col-md-6">
               <div class="analytics-card">
                 <h6>Tarefas por Prioridade</h6>
@@ -246,9 +227,8 @@
                 </div>
               </div>
             </div>
-          </div>
-          <div class="row">
-            <div class="col-md-6">
+            -->
+            <div class="col-md-6"> <!-- This was previously the Status Chart, now it might take the full width or be next to Progress -->
               <div class="analytics-card">
                 <h6>Tarefas por Status</h6>
                 <div class="chart-container">
@@ -256,7 +236,9 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6">
+          </div>
+          <div class="row">
+            <div class="col-md-12"> <!-- Made Completion Trend Chart full width -->
               <div class="analytics-card">
                 <h6>Tendência de Conclusão</h6>
                 <div class="chart-container">
